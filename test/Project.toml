@@ -1,0 +1,14 @@
+[deps]
+ExplicitImports = "7d51a73a-1435-4ff3-83d9-f097790105c7"
+IOCapture = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+JuliaFormatter = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
+LocalCoverage = "5f6e1e16-694c-5876-87ef-16b5274f298e"
+NoiseTAI = "803bf123-8e03-4514-aad8-54507f43f3b1"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+TestingUtilities = "40452611-1178-4e48-bdfc-3af4bebad9c9"
+
+[sources]
+NoiseTAI = {path = ".."}

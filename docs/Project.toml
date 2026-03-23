@@ -1,0 +1,6 @@
+[deps]
+NoiseTAI = "803bf123-8e03-4514-aad8-54507f43f3b1"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+
+[sources]
+NoiseTAI = {path = ".."}

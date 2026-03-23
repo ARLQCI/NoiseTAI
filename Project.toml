@@ -1,0 +1,25 @@
+name = "NoiseTAI"
+uuid = "803bf123-8e03-4514-aad8-54507f43f3b1"
+authors = ["Michael Goerz <mail@michaelgoerz.net>"]
+version = "0.1.0"
+
+[deps]
+DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
+FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
+
+[compat]
+DataInterpolations = "8"
+FFTW = "1"
+Printf = "1.11"
+ProgressMeter = "1"
+Random = "1.11"
+RecipesBase = "1.3"
+Statistics = "1.11"
+UnicodePlots = "3"
+julia = "1.10"
