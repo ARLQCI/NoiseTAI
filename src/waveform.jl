@@ -26,7 +26,8 @@ oscillator parameters. When `target_rms` is given, all arrays are rescaled by
   but any `AbstractVector` is accepted — oscillators are evaluated at each
   `tlist[it]`, so non-uniform grids work. For [`AccelerationSpectrum`](@ref)
   the grid must be uniform (asserted there).
-- `f_band_min`, `f_band_max`: frequency band for oscillator sampling (Hz)
+- `f_band_min=psd.f_min`, `f_band_max=psd.f_max`: frequency band for oscillator
+   sampling (Hz). Must be in the frequency range supported by `psd`.
 - `n_oscillators`: number of random sinusoids to superimpose
 - `rng`: random number generator; any `AbstractRNG`; defaults to
   `Random.default_rng()` (non-fixed seed). Pass a `Ran2State` for legacy
@@ -67,8 +68,8 @@ end
 function AccelerationTrace(
     psd::PSDData;
     tlist,
-    f_band_min::Float64,
-    f_band_max::Float64,
+    f_band_min::Float64 = psd.f_min,
+    f_band_max::Float64 = psd.f_max,
     n_oscillators::Int,
     rng::Random.AbstractRNG = Random.default_rng(),
     target_rms::Union{Float64,Nothing} = nothing,
