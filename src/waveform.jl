@@ -74,6 +74,12 @@ function AccelerationTrace(
     target_rms::Union{Float64,Nothing} = nothing,
     show_progress::Bool = true,
 )
+    if f_band_min < psd.f_min || f_band_max > psd.f_max
+        error(
+            "Frequency band [$f_band_min, $f_band_max] Hz is outside PSD data range " *
+            "[$(psd.f_min), $(psd.f_max)] Hz"
+        )
+    end
     n_samples    = length(tlist)
     Δf          = f_band_max - f_band_min
     acceleration = zeros(Float64, n_samples)

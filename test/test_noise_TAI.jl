@@ -556,3 +556,39 @@ end
     end
 
 end
+
+
+@testset "out-of-range error handling" begin
+
+    psd = PSDData(PSD_FILE; acceleration_unit = 1.0)
+    tlist = collect(range(0.0, step = 1e-4, length = 64))
+
+    @testset "PSDData functor: below f_min" begin
+        @test_throws ErrorException psd(psd.f_min - 1.0)
+    end
+
+    @testset "PSDData functor: above f_max" begin
+        @test_throws ErrorException psd(psd.f_max + 1.0)
+    end
+
+    @testset "AccelerationTrace: f_band_min below psd.f_min" begin
+        @test_throws ErrorException AccelerationTrace(
+            psd;
+            tlist         = tlist,
+            f_band_min    = psd.f_min - 1.0,
+            f_band_max    = psd.f_max,
+            n_oscillators = 10,
+        )
+    end
+
+    @testset "AccelerationTrace: f_band_max above psd.f_max" begin
+        @test_throws ErrorException AccelerationTrace(
+            psd;
+            tlist         = tlist,
+            f_band_min    = psd.f_min,
+            f_band_max    = psd.f_max + 1.0,
+            n_oscillators = 10,
+        )
+    end
+
+end

@@ -105,7 +105,12 @@ function PSDData(; interpolation_method::Symbol = :linear)
 end
 
 
-(psd::PSDData)(f::Real) = psd.itp(f)
+function (psd::PSDData)(f::Real)
+    if f < psd.f_min || f > psd.f_max
+        error("Frequency $f Hz is outside PSD data range [$(psd.f_min), $(psd.f_max)] Hz")
+    end
+    return psd.itp(f)
+end
 
 
 function Base.show(io::IO, psd::PSDData)
