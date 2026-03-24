@@ -160,15 +160,14 @@ end
                                               dt (s)          : 0.0001
                                               f_band_min (Hz) : 20.0
                                               f_band_max (Hz) : 1025.0
-                                              n_candidates    : 51
                                               rms (m/s²)      : $target_rms
-                                              eta (target RMS / actual) : 1.5123091859600124
+                                              eta (target RMS / actual) : 1.3720841361052456
 
                                            Check Monte-Carlo convergence of acceleration trace:
                                             expected rms (band-limited PSD): 1.2762241779891113 m/s²
-                                            raw rms (pre-normalization)     : 1.37083 m/s²
-                                            σ_rms (Monte Carlo)             : 0.13857403962867668 m/s²
-                                            deviation                       : 0.682676 σ
+                                            raw rms (pre-normalization)     : 1.4024201097491513 m/s²
+                                            σ_rms (Monte Carlo)             : 0.12846064071138866 m/s²
+                                            deviation                       : 0.9823704059172748 σ
                                             (≤ 4σ expected ~99.994% of the time)
 
                                            AccelerationSpectrum with $n_samples samples
@@ -487,7 +486,6 @@ end
         f0,
         f0,                 # dummy band limits
         rms_val,
-        n_samples,
         1.0
     )
     spectrum = AccelerationSpectrum(trace)

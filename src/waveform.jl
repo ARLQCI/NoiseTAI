@@ -48,7 +48,6 @@ oscillator parameters. When `target_rms` is given, all arrays are rescaled by
   (amplitude Aₖ (m/s²), frequency fₖ (Hz), phase φₖ (rad))
 - `f_band_min`, `f_band_max`: noise band limits (Hz)
 - `rms`: actual RMS of `acceleration` (m/s²)
-- `n_candidates`: total random candidates drawn during oscillator selection
 - `eta`: rescaling factor applied to all arrays; 1.0 if `target_rms=nothing`,
   otherwise target_rms / raw_rms
 """
@@ -60,7 +59,6 @@ struct AccelerationTrace
     f_band_min::Float64
     f_band_max::Float64
     rms::Float64
-    n_candidates::Int
     eta::Float64
 end
 
@@ -86,47 +84,43 @@ function AccelerationTrace(
     acceleration = zeros(Float64, n_samples)
     displacement = zeros(Float64, n_samples)
     oscillators  = zeros(Float64, 3, n_oscillators)  # rows: Aₖ (m/s²), fₖ (Hz), φₖ (rad)
-    n_candidates = 0
-    n_accepted   = 0
 
+    # The original Fortran drew f ~ Uniform[0, f_band_max] and rejected f < f_band_min,
+    # which gives a uniform distribution over [f_band_min, f_band_max] but wastes
+    # ~f_band_min/f_band_max of all draws.  That structure also made results comparable
+    # across f_band_min values at fixed seed (narrowing the band only filtered oscillators
+    # without reshuffling the accepted ones).  Here we sample directly from the target
+    # interval, which is statistically equivalent but breaks that cross-run correspondence.
     prog = Progress(n_oscillators; desc = "Oscillators: ", enabled = show_progress)
-    while n_accepted < n_oscillators
+    for k = 1:n_oscillators
 
-        n_candidates += 1
-        f = rand(rng) * f_band_max
+        next!(prog)
+        f = f_band_min + rand(rng) * Δf
+        ϕ = 2π * rand(rng)
 
-        if f_band_min <= f <= f_band_max
+        S = psd(f)  # interpolated PSD value S(fₖ) in (m/s²)²/Hz
 
-            n_accepted += 1
-            next!(prog)
+        # Physical amplitude: each of the M oscillators occupies an expected
+        # bin of width Δf/M.  Requiring ⟨aₖ² cos²⟩ = ⟨aₖ²⟩/2 = S(fₖ)·Δf/M
+        # gives aₖ = √(2·S(fₖ)·Δf/M) in m/s².
+        a = sqrt(2 * S * Δf / n_oscillators)
+        ω = 2π * f
+        x₀ = a / ω^2  # displacement amplitude: xₖ(t) = -x₀ cos(ωₖt + φₖ)
 
-            ϕ = 2π * rand(rng)
+        oscillators[1, k] = a
+        oscillators[2, k] = f
+        oscillators[3, k] = ϕ
 
-            S = psd(f)  # interpolated PSD value S(fₖ) in (m/s²)²/Hz
-
-            # Physical amplitude: each of the M oscillators occupies an expected
-            # bin of width Δf/M.  Requiring ⟨aₖ² cos²⟩ = ⟨aₖ²⟩/2 = S(fₖ)·Δf/M
-            # gives aₖ = √(2·S(fₖ)·Δf/M) in m/s².
-            a = sqrt(2 * S * Δf / n_oscillators)
-            ω = 2π * f
-            x₀ = a / ω^2  # displacement amplitude: xₖ(t) = -x₀ cos(ωₖt + φₖ)
-
-            oscillators[1, n_accepted] = a
-            oscillators[2, n_accepted] = f
-            oscillators[3, n_accepted] = ϕ
-
-            # Accumulate oscillator contributions at each time point.
-            #
-            # acceleration: a(t) = Σₖ aₖ cos(ωₖ t + φₖ)  [m/s²]
-            # displacement: x(t) = Σₖ xₖ(t)              [m]
-            #   xₖ satisfies ẍₖ = aₖ cos(ωₖ t + φₖ); integrating twice gives
-            #   xₖ(t) = -(aₖ/ωₖ²) cos(ωₖ t + φₖ) = -x₀ cos(ωₖ t + φₖ).
-            for it = 1:n_samples
-                cos_val          = cos(ω * tlist[it] + ϕ)
-                acceleration[it] += a * cos_val
-                displacement[it] -= x₀ * cos_val
-            end
-
+        # Accumulate oscillator contributions at each time point.
+        #
+        # acceleration: a(t) = Σₖ aₖ cos(ωₖ t + φₖ)  [m/s²]
+        # displacement: x(t) = Σₖ xₖ(t)              [m]
+        #   xₖ satisfies ẍₖ = aₖ cos(ωₖ t + φₖ); integrating twice gives
+        #   xₖ(t) = -(aₖ/ωₖ²) cos(ωₖ t + φₖ) = -x₀ cos(ωₖ t + φₖ).
+        for it = 1:n_samples
+            cos_val          = cos(ω * tlist[it] + ϕ)
+            acceleration[it] += a * cos_val
+            displacement[it] -= x₀ * cos_val
         end
 
     end
@@ -164,7 +158,6 @@ function AccelerationTrace(
         f_band_min,
         f_band_max,
         trace_rms,
-        n_candidates,
         eta,
     )
 end
@@ -195,7 +188,6 @@ function Base.show(io::IO, ::MIME"text/plain", trace::AccelerationTrace)
     println(io, "   dt (s)          : ", dt)
     println(io, "   f_band_min (Hz) : ", trace.f_band_min)
     println(io, "   f_band_max (Hz) : ", trace.f_band_max)
-    println(io, "   n_candidates    : ", trace.n_candidates)
     println(io, "   rms (m/s²)      : ", trace.rms)
     print(io, "   eta (target RMS / actual) : ", trace.eta)
 end
@@ -357,7 +349,6 @@ function resample_acceleration_trace(
         trace.f_band_min,
         trace.f_band_max,
         trace_rms,
-        trace.n_candidates,
         1.0,
     )
 end
