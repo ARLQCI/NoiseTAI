@@ -1,7 +1,7 @@
 name = "NoiseTAI"
 uuid = "803bf123-8e03-4514-aad8-54507f43f3b1"
 authors = ["Michael Goerz <mail@michaelgoerz.net>"]
-version = "0.1.0"
+version = "0.1.0-dev"
 
 [deps]
 DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
