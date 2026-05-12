@@ -35,7 +35,7 @@ Write an [`AccelerationTrace`](@ref) to a time-trace ASCII file.
 ```julia
 write_acceleration_trace(trace, "time_trace.dat")
 ```
-writes three columns: time (s), acceleration (m/s²), displacement (m).
+writes four columns: time (s), acceleration (m/s²), velocity (m/s), displacement (m).
 The time column is taken directly from `trace.tlist`.
 """
 function write_acceleration_trace(trace::AccelerationTrace, time_trace_file::String)
@@ -43,9 +43,11 @@ function write_acceleration_trace(trace::AccelerationTrace, time_trace_file::Str
         println(fh, "# Acceleration time trace")
         println(fh, "# Column 1: time (s)")
         println(fh, "# Column 2: acceleration (m/s^2)")
-        println(fh, "# Column 3: displacement (m)")
-        for (t, a, d) in zip(trace.tlist, trace.acceleration, trace.displacement)
-            @printf(fh, "%15.8E %15.8E %15.8E\n", t, a, d)
+        println(fh, "# Column 3: velocity (m/s)")
+        println(fh, "# Column 4: displacement (m)")
+        for (t, a, v, d) in
+            zip(trace.tlist, trace.acceleration, trace.velocity, trace.displacement)
+            @printf(fh, "%15.8E %15.8E %15.8E %15.8E\n", t, a, v, d)
         end
     end
 end

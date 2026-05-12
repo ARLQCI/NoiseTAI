@@ -197,13 +197,14 @@ end
         @test isfile(spectrum_file)
 
         # --- correct number of lines ---
-        #   Header: 4 lines
+        #   Header: 5 lines
         #     "# Acceleration time trace"
         #     "# Column 1: time (s)"
         #     "# Column 2: acceleration (m/s^2)"
-        #     "# Column 3: displacement (m)"
+        #     "# Column 3: velocity (m/s)"
+        #     "# Column 4: displacement (m)"
         #   Data: one line per time step in `1:n_samples`
-        @test countlines(trace_file) == 4 + n_samples
+        @test countlines(trace_file) == 5 + n_samples
 
         # spectrum file:
         #   Header: 6 lines
@@ -224,7 +225,8 @@ end
         spectrum = parse_columns(spectrum_file)
 
         a = trace[:, 2]   # acceleration (m/s²)
-        d = trace[:, 3]   # displacement  (m)
+        v = trace[:, 3]   # velocity (m/s)
+        d = trace[:, 4]   # displacement  (m)
 
         @testset "RMS normalization" begin
             # After generating the oscillator superposition, the program rescales
@@ -475,12 +477,14 @@ end
 
     tlist        = collect(range(0.0, step = dt, length = n_samples))
     acceleration = A .* cos.(2π * f0 .* tlist)
+    velocity     = (A / (2π * f0)) .* sin.(2π * f0 .* tlist)
     displacement = -(A / (2π * f0)^2) .* cos.(2π * f0 .* tlist)
     rms_val      = sqrt(sum(abs2, acceleration) / n_samples)
 
     trace = AccelerationTrace(
         tlist,
         acceleration,
+        velocity,
         displacement,
         zeros(Float64, 3, 1),  # dummy oscillators
         f0,

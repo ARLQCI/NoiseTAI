@@ -42,6 +42,8 @@ oscillator parameters. When `target_rms` is given, all arrays are rescaled by
 - `tlist`: time grid (s), length `n_samples`; typically uniform but may be
   arbitrary — [`AccelerationSpectrum`](@ref) asserts uniformity
 - `acceleration`: acceleration waveform (m/s²), length `n_samples`
+- `velocity`: velocity waveform (m/s), length `n_samples`; satisfies ``v̇ = a``
+  entry-by-entry
 - `displacement`: displacement waveform (m), length `n_samples`; satisfies
   ``ẍ = a`` entry-by-entry
 - `oscillators`: 3 × `n_oscillators` matrix of
@@ -54,6 +56,7 @@ oscillator parameters. When `target_rms` is given, all arrays are rescaled by
 struct AccelerationTrace
     tlist::Vector{Float64}
     acceleration::Vector{Float64}
+    velocity::Vector{Float64}
     displacement::Vector{Float64}
     oscillators::Matrix{Float64}
     f_band_min::Float64
@@ -82,6 +85,7 @@ function AccelerationTrace(
     n_samples    = length(tlist)
     Δf          = f_band_max - f_band_min
     acceleration = zeros(Float64, n_samples)
+    velocity     = zeros(Float64, n_samples)
     displacement = zeros(Float64, n_samples)
     oscillators  = zeros(Float64, 3, n_oscillators)  # rows: Aₖ (m/s²), fₖ (Hz), φₖ (rad)
 
@@ -105,6 +109,7 @@ function AccelerationTrace(
         # gives aₖ = √(2·S(fₖ)·Δf/M) in m/s².
         a = sqrt(2 * S * Δf / n_oscillators)
         ω = 2π * f
+        v₀ = a / ω    # velocity amplitude: vₖ(t) = v₀ sin(ωₖt + φₖ)
         x₀ = a / ω^2  # displacement amplitude: xₖ(t) = -x₀ cos(ωₖt + φₖ)
 
         oscillators[1, k] = a
@@ -113,14 +118,19 @@ function AccelerationTrace(
 
         # Accumulate oscillator contributions at each time point.
         #
-        # acceleration: a(t) = Σₖ aₖ cos(ωₖ t + φₖ)  [m/s²]
-        # displacement: x(t) = Σₖ xₖ(t)              [m]
+        # acceleration: a(t) = Σₖ aₖ cos(ωₖ t + φₖ)          [m/s²]
+        # velocity:     v(t) = Σₖ (aₖ/ωₖ) sin(ωₖ t + φₖ)     [m/s]
+        #   integrating aₖ cos(ωₖ t + φₖ) once, zero mean assumed.
+        # displacement: x(t) = Σₖ xₖ(t)                       [m]
         #   xₖ satisfies ẍₖ = aₖ cos(ωₖ t + φₖ); integrating twice gives
         #   xₖ(t) = -(aₖ/ωₖ²) cos(ωₖ t + φₖ) = -x₀ cos(ωₖ t + φₖ).
         for it = 1:n_samples
-            cos_val          = cos(ω * tlist[it] + ϕ)
-            acceleration[it] += a * cos_val
-            displacement[it] -= x₀ * cos_val
+            θ               = ω * tlist[it] + ϕ
+            cos_θ           = cos(θ)
+            sin_θ           = sin(θ)
+            acceleration[it] += a * cos_θ
+            velocity[it]     += v₀ * sin_θ
+            displacement[it] -= x₀ * cos_θ
         end
 
     end
@@ -142,6 +152,7 @@ function AccelerationTrace(
     if !isnothing(target_rms)
         eta = target_rms / actual_rms
         acceleration .*= eta
+        velocity .*= eta
         displacement .*= eta
         oscillators[1, :] .*= eta
         trace_rms = target_rms
@@ -153,6 +164,7 @@ function AccelerationTrace(
     return AccelerationTrace(
         collect(Float64, tlist),
         acceleration,
+        velocity,
         displacement,
         oscillators,
         f_band_min,
@@ -315,11 +327,13 @@ function resample_acceleration_trace(
     n_oscillators = size(trace.oscillators, 2)
     n_samples     = length(tlist)
     acceleration  = zeros(Float64, n_samples)
+    velocity      = zeros(Float64, n_samples)
     displacement  = zeros(Float64, n_samples)
 
     a = trace.oscillators[1, :]
     ω = 2π .* trace.oscillators[2, :]
     φ = trace.oscillators[3, :]
+    v₀ = a ./ ω
     x₀ = a ./ ω .^ 2
 
     prog = Progress(n_samples; desc = "Resampling: ", enabled = show_progress)
@@ -327,13 +341,18 @@ function resample_acceleration_trace(
 
         t   = tlist[it]
         acc = 0.0
+        vel = 0.0
         x   = 0.0
         for i_osc = 1:n_oscillators
-            cos_val = cos(ω[i_osc] * t + φ[i_osc])
-            acc += a[i_osc] * cos_val
-            x -= x₀[i_osc] * cos_val
+            θ = ω[i_osc] * t + φ[i_osc]
+            cos_θ = cos(θ)
+            sin_θ = sin(θ)
+            acc += a[i_osc] * cos_θ
+            vel += v₀[i_osc] * sin_θ
+            x -= x₀[i_osc] * cos_θ
         end
         acceleration[it] = acc
+        velocity[it]     = vel
         displacement[it] = x
         next!(prog)
 
@@ -344,6 +363,7 @@ function resample_acceleration_trace(
     return AccelerationTrace(
         collect(Float64, tlist),
         acceleration,
+        velocity,
         displacement,
         trace.oscillators,
         trace.f_band_min,
