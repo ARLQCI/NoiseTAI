@@ -2,8 +2,8 @@
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://ARLQCI.github.io/NoiseTAI.jl/stable/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://ARLQCI.github.io/NoiseTAI.jl/dev/)
-[![CI](https://github.com/ARLQCI/NoiseTAI/actions/workflows/CI.yml/badge.svg)](https://github.com/ARLQCI/NoiseTAI/actions/workflows/CI.yml)
-[![Coverage](https://codecov.io/github/ARLQCI/NoiseTAI/branch/master/graph/badge.svg)](https://app.codecov.io/github/ARLQCI/NoiseTAI)
+[![CI](https://github.com/ARLQCI/NoiseTAI.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/ARLQCI/NoiseTAI.jl/actions/workflows/CI.yml)
+[![Coverage](https://codecov.io/github/ARLQCI/NoiseTAI.jl/branch/master/graph/badge.svg)](https://app.codecov.io/github/ARLQCI/NoiseTAI.jl)
 
 Generate synthetic random vibration time series with a prescribed acceleration [Power Spectral Density (PSD)](https://en.wikipedia.org/wiki/Spectral_density), for use in [Trapped Atom Interferometer (TAI)](https://arxiv.org/abs/2303.01100) noise simulations.
 
