@@ -1,7 +1,7 @@
 name = "NoiseTAI"
 uuid = "803bf123-8e03-4514-aad8-54507f43f3b1"
-authors = ["Michael Goerz <mail@michaelgoerz.net>"]
 version = "0.1.0-dev"
+authors = ["Michael Goerz <mail@michaelgoerz.net>"]
 
 [deps]
 DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
@@ -14,7 +14,7 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
 
 [compat]
-DataInterpolations = "8"
+DataInterpolations = "8, 9"
 FFTW = "1"
 Printf = "1.11"
 ProgressMeter = "1"
